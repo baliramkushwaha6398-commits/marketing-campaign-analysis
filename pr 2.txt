@@ -1,0 +1,11 @@
+SELECT 
+    CASE 
+        WHEN Total_Spend > 1000 AND Income > 75000 THEN 'High-Value VIP'
+        WHEN Response = 1 OR (AcceptedCmp1 + AcceptedCmp2 + AcceptedCmp3 + AcceptedCmp4 + AcceptedCmp5) > 0 THEN 'Campaign Enthusiast'
+        WHEN NumWebPurchases > NumStorePurchases THEN 'Digital Shopper'
+        ELSE 'Standard Customer'
+    END AS Customer_Segment,
+    COUNT(*) AS Segment_Count,
+    AVG(Total_Spend) AS Avg_Spend
+FROM marketing_data
+GROUP BY Customer_Segment;
