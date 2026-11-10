@@ -1,0 +1,61 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+st.set_page_config(page_title="Marketing Campaign Analytics", layout="wide")
+
+@st.cache_data
+def load_data():
+    return pd.read_csv('segmented_marketing_data.csv')
+
+df = load_data()
+
+st.title("📊 Marketing Campaign Analytics Dashboard")
+st.markdown("Interactive dashboard analyzing customer behavior, channel performance, and campaign success.")
+
+# Sidebar Filters
+st.sidebar.header("Filter Options")
+selected_country = st.sidebar.multiselect("Select Country", options=df['Country'].unique() if 'Country' in df.columns else [], default=df['Country'].unique() if 'Country' in df.columns else [])
+
+filtered_df = df.copy()
+if selected_country and 'Country' in df.columns:
+    filtered_df = df[df['Country'].isin(selected_country)]
+
+# KPI Metrics Row
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Total Customers", len(filtered_df))
+col2.metric("Average Income", f"${filtered_df['Income'].mean():,.0f}" if 'Income' in filtered_df.columns else "N/A")
+col3.metric("Average Total Spend", f"${filtered_df['Total_Spend'].mean():,.2f}" if 'Total_Spend' in filtered_df.columns else "N/A")
+col4.metric("Overall Response Rate", f"{filtered_df['Response'].mean()*100:.2f}%" if 'Response' in filtered_df.columns else "N/A")
+
+st.markdown("---")
+
+# Charts Section
+row1_col1, row1_col2 = st.columns(2)
+
+with row1_col1:
+    st.subheader("Spending Across Product Categories")
+    if set(['MntWines', 'MntFruits', 'MntMeatProducts', 'MntFishProducts', 'MntSweetProducts', 'MntGoldProds']).issubset(filtered_df.columns):
+        spend_totals = filtered_df[['MntWines', 'MntFruits', 'MntMeatProducts', 'MntFishProducts', 'MntSweetProducts', 'MntGoldProds']].sum().reset_index()
+        spend_totals.columns = ['Category', 'Amount']
+        fig_spend = px.bar(spend_totals, x='Category', y='Amount', color='Category', title="Total Spend by Product Category")
+        st.plotly_chart(fig_spend, use_container_width=True)
+    else:
+        st.info("Product spend columns not found.")
+
+with row1_col2:
+    st.subheader("Customer Segments Distribution")
+    if 'Customer_Segment' in filtered_df.columns:
+        seg_counts = filtered_df['Customer_Segment'].value_counts().reset_index()
+        seg_counts.columns = ['Segment', 'Count']
+        fig_seg = px.pie(seg_counts, names='Segment', values='Count', hole=0.4, title="Proportion of Customer Segments")
+        st.plotly_chart(fig_seg, use_container_width=True)
+
+# Bivariate Analysis Section
+st.subheader("Bivariate Analysis: Income vs. Total Spend")
+if 'Income' in filtered_df.columns and 'Total_Spend' in filtered_df.columns:
+    fig_scatter = px.scatter(filtered_df, x='Income', y='Total_Spend', color='Customer_Segment' if 'Customer_Segment' in filtered_df.columns else None,
+                             title="Income vs Total Spend Relationship", opacity=0.7)
+    st.plotly_chart(fig_scatter, use_container_width=True)
+
+st.success("Dashboard ready! Run via terminal using: `streamlit run app.py`")

@@ -1,0 +1,21 @@
+import pandas as pd
+
+df = pd.read_csv('cleaned_marketing_data.csv')
+
+def assign_segment(row):
+    spend = row.get('Total_Spend', 0)
+    income = row.get('Income', 0)
+    responses = row.get('Response', 0)
+    
+    if spend > 1000 and income > 75000:
+        return 'High-Value VIP'
+    elif responses == 1 or row.get('AcceptedCmpOverall', 0) > 0:
+        return 'Campaign Enthusiast'
+    elif row.get('NumWebPurchases', 0) > row.get('NumStorePurchases', 0):
+        return 'Digital Shopper'
+    else:
+        return 'Standard Customer'
+
+df['Customer_Segment'] = df.apply(assign_segment, axis=1)
+df.to_csv('segmented_marketing_data.csv', index=False)
+print("Segmentation complete!")

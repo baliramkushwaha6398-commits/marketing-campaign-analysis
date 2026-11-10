@@ -1,0 +1,7 @@
+SELECT 
+    AVG(NumWebPurchases) AS Avg_Web_Purchases,
+    AVG(NumCatalogPurchases) AS Avg_Catalog_Purchases,
+    AVG(NumStorePurchases) AS Avg_Store_Purchases,
+    AVG(NumWebVisitsMonth) AS Avg_Web_Visits_Month
+FROM marketing_data
+WHERE Income > 75000;
